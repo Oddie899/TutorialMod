@@ -4,9 +4,13 @@ import me.oddie.fuckayou.blocks.pen15.entity.pen15BlockEntity;
 import me.oddie.fuckayou.init.ParticleInit;
 import me.oddie.fuckayou.manasystem.IManaHandler;
 import me.oddie.fuckayou.manasystem.ManaStorage;
+import me.oddie.fuckayou.network.CumPacket;
+import me.oddie.fuckayou.network.PacketHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -16,8 +20,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.PacketDistributor;
+
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
+
+import com.mojang.patchy.BlockedServers;
 
 public class Pen15 extends Block implements EntityBlock {
 
@@ -25,29 +34,30 @@ public class Pen15 extends Block implements EntityBlock {
         super(properties);
     }
 
-    public LazyOptional<IManaHandler> cachedHandler;
-    public void cumMethod(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult){
-        for (int i = 0; i <= 10 * Math.random(); i++) { //This for loop is used to generate a random number of particles at once
-            level.addParticle(ParticleInit.Mayo_Particles.get(),
-                    blockPos.getX() + 0.5, blockPos.getY() + 2.1, blockPos.getZ() + 0.5, //This controls the position the particle spawns in relation to the block
-                    Math.random() - 0.5, 1, Math.random() - 0.5);//While this controls the speed of the particle
-        }
-    }
+    
     @Override
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult)
     {
-        if(cachedHandler == null){
-            ICapabilityProvider provider = level.getBlockEntity(blockPos);
-            cachedHandler = provider.getCapability(ManaStorage.MANA_CAPABILITY);
-        }
-        cachedHandler.ifPresent((manaHandler) -> {
-            if(manaHandler.remove(1)){
-                cumMethod(blockState, level, blockPos,player, interactionHand,blockHitResult);
-            }
-            else{
+		BlockEntity blockEntity = level.getBlockEntity(blockPos);
+		ICapabilityProvider provider = (ICapabilityProvider) blockEntity;
+		var cap = provider.getCapability(ManaStorage.MANA_CAPABILITY);
 
-            }
-        });
+		if(!level.isClientSide){
+			
+			cap.ifPresent((manaHandler) -> {
+				if(manaHandler.remove(1)){
+					var target = PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPos));
+					PacketHandler.CHANNEL.send(target, new CumPacket(blockPos));
+					
+					player.getItemInHand(interactionHand).getCapability(ManaStorage.MANA_CAPABILITY).ifPresent(
+						(wandCapability) -> {
+							wandCapability.add(1);
+						}
+					);
+				}				
+			});
+		} 
+        
         return InteractionResult.SUCCESS;
     }
     @Nullable

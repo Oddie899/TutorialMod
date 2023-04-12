@@ -53,7 +53,7 @@ public class ManaStorage implements IManaHandler{
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        this.mana = nbt.getInt(key);
+        // this.mana = nbt.getInt(key);
     }
     public void onChanged(int mana) {
 
