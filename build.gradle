@@ -54,7 +54,7 @@ minecraft {
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             property 'forge.enabledGameTestNamespaces', 'fuckayou'
 
-			args '--username', username, '--password', password
+			args '--username', username
 
             mods {
                 fuckayou {

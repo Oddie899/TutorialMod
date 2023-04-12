@@ -12,7 +12,8 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 class CumPacketHandler {
-	public static void cumMethod(Level level, BlockPos blockPos){
+	public static void cumMethod(BlockPos blockPos){
+		var level = Minecraft.getInstance().level;
         for (int i = 0; i <= 10 * Math.random(); i++) { //This for loop is used to generate a random number of particles at once
             level.addParticle(ParticleInit.Mayo_Particles.get(),
                     blockPos.getX() + 0.5, blockPos.getY() + 2.1, blockPos.getZ() + 0.5, //This controls the position the particle spawns in relation to the block
@@ -41,7 +42,7 @@ public class CumPacket {
 	
 
 	public void handle(Supplier<NetworkEvent.Context> ctx){
-		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CumPacketHandler.cumMethod(Minecraft.getInstance().level, blockPos));
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CumPacketHandler.cumMethod(blockPos));
 		
 	}
 }
